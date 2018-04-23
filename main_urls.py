@@ -23,7 +23,7 @@ TEST_URLS = 'urls.txt'
 TEST_LABELS = 'labels.txt'
 
 ## parameter setting
-epochs = 50
+epochs = 10
 learning_rate = 0.01
 
 def adjust_learning_rate(optimizer, epoch):
@@ -82,7 +82,7 @@ if __name__=='__main__':
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        print("Starting Training Epoch: ", epoch)
+        print("Starting Training Epoch: ", epoch+1)
         time.sleep(3)
         for (i, traindata) in enumerate(train_loader):
             train_inputs, train_labels = traindata
