@@ -58,26 +58,27 @@ if __name__=='__main__':
     model.batch_size = batch_size
     if use_gpu:
         model = model.cuda()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer = optim.SGD(model.parameters(), lr=0.0005)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
     test_loss_ = []
     train_acc_ = []
     test_acc_ = []
     ### training procedure
+    train_loader = DataLoader(dtrain_set,
+                    batch_size=batch_size,
+                    shuffle=True,
+                    num_workers=4
+                    )
+
+    test_loader = DataLoader(dtest_set,
+                        batch_size=batch_size,
+                        shuffle=True,
+                        num_workers=4
+                        )
     optimizer.zero_grad()
     for epoch in range(epochs):
-        train_loader = DataLoader(dtrain_set,
-                            batch_size=batch_size,
-                            shuffle=True,
-                            num_workers=4
-                            )
 
-        test_loader = DataLoader(dtest_set,
-                            batch_size=batch_size,
-                            shuffle=True,
-                            num_workers=4
-                            )
         ## training epoch
         total_acc = 0.0
         total_loss = 0.0
@@ -116,9 +117,6 @@ if __name__=='__main__':
             percent_correct = float(total_acc)/float(total)
             print("Percent Correct: ", percent_correct)
             print("Average Loss: ", total_loss/total)
-            
-        train_loss_.append(float(total_loss) / float(total))
-        train_acc_.append(float(total_acc) / float(total))
         ## testing epoch
         total_acc = 0.0
         total_loss = 0.0
@@ -155,12 +153,6 @@ if __name__=='__main__':
             percent_correct = float(total_acc)/float(total)
             print("Validation Percent Correct: ", percent_correct)
             print("Validation Average Loss: ", total_loss/total)
-
-        test_loss_.append(float(total_loss) / float(total))
-        test_acc_.append(float(total_acc) / float(total))
-
-        print('[Epoch: %d/%d] Training Loss: %.6f, Testing Loss: %.6f, Train Accuracy: %.3f, Test Accuracy: %.3f'
-              % (epoch, epochs, train_loss_[epoch], test_loss_[epoch], train_acc_[epoch], test_acc_[epoch]))
     param = {}
     param['lr'] = learning_rate
     param['batch size'] = batch_size
