@@ -8,19 +8,16 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
 from utils.DataLoading import GetURLcharset, URLCharDataset
-use_plot = True
+use_plot = False
 use_save = True
 if use_save:
     import pickle
     from datetime import datetime
 
-DATA_DIR = 'data'
-TRAIN_DIR = 'train_txt'
-TEST_DIR = 'test_txt'
-TRAIN_FILE = 'train_txt.txt'
-TEST_FILE = 'test_txt.txt'
-TRAIN_LABEL = 'train_label.txt'
-TEST_LABEL = 'test_label.txt'
+TRAIN_URLS = 'urls.txt'
+TRAIN_LABELS = 'labels.txt'
+TEST_URLS = 'urls.txt'
+TEST_LABELS = 'labels.txt'
 
 ## parameter setting
 epochs = 50
@@ -39,33 +36,20 @@ if __name__=='__main__':
     embedding_dim = 100
     hidden_dim = 50
     url_len = 32
-    train_file = os.path.join(DATA_DIR, TRAIN_FILE)
-    test_file = os.path.join(DATA_DIR, TEST_FILE)
-    fp_train = open(train_file, 'r')
-    train_filenames = [os.path.join(TRAIN_DIR, line.strip()) for line in fp_train]
-    filenames = copy.deepcopy(train_filenames)
-    fp_train.close()
-    fp_test = open(test_file, 'r')
-    test_filenames = [os.path.join(TEST_DIR, line.strip()) for line in fp_test]
-    fp_test.close()
-    filenames.extend(test_filenames)
-
-    corpus = DP.Corpus(DATA_DIR, filenames)
     nlabel = 2
-
     regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
     chars = tuple(regularset)
     int2char = dict(enumerate(chars))
     char2int = {ch: ii for ii, ch in int2char.items()}
     ### data processing
-    dtrain_set = URLCharDataset(int2char, char2int, url_len, 'urls.txt', 'labels.txt')
+    dtrain_set = URLCharDataset(int2char, char2int, url_len, TRAIN_URLS, TRAIN_LABELS)
 
     train_loader = DataLoader(dtrain_set,
                           batch_size=batch_size,
                           shuffle=True,
                           num_workers=4
                          )
-    dtest_set = URLCharDataset(int2char, char2int, url_len, 'urls.txt', 'labels.txt')
+    dtest_set = URLCharDataset(int2char, char2int, url_len, TEST_URLS, TEST_LABELS)
 
     test_loader = DataLoader(dtest_set,
                           batch_size=batch_size,
