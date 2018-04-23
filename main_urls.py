@@ -79,7 +79,7 @@ if __name__=='__main__':
 
     test_loader = DataLoader(dtest_set,
                         batch_size=10,
-                        shuffle=False,
+                        shuffle=True,
                         num_workers=4
                         )
     model.batch_size = batch_size
