@@ -92,7 +92,8 @@ if __name__=='__main__':
 
             model.hidden = model.init_hidden()
             output = model(train_inputs.t())
-          #  print("Raw Outputs", output)
+           # print("Raw Outputs", output)
+          #  print("Labels", train_labels)
 
             loss = loss_function(output, Variable(train_labels))
             optimizer.zero_grad()

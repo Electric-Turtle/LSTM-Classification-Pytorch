@@ -34,7 +34,7 @@ class URLCharDataset(data.Dataset):
     
     # Return imgId, and a random caption for that image.
     def __getitem__(self, index):
-        return self.caption2ids(self.urls[index].replace('\n','')), torch.LongTensor([int(self.labels[index])])
+        return self.caption2ids(self.urls[index].replace('\n','')), int(self.labels[index])
     
     # Return the number of elements of the dataset.
     def __len__(self):
