@@ -161,8 +161,8 @@ if __name__=='__main__':
         total += len(test_labels)
         total_loss += loss.data.item()
         percent_correct = float(total_acc)/float(total)
-        #print("Validation Percent Correct: ", percent_correct)
-        #print("Validation Average Loss: ", total_loss/total)
+        print("Validation Percent Correct: ", percent_correct)
+        print("Validation Average Loss: ", total_loss/total)
     param = {}
     param['lr'] = learning_rate
     param['batch size'] = batch_size
