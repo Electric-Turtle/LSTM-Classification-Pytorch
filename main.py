@@ -102,7 +102,7 @@ if __name__=='__main__':
            # print("Softmax Outputs: ", predictions)
 
             # calc training acc
-            _, predicted = torch.max(predictions.data, 1)
+            _, predicted = torch.max(predictions, 1)
           #  print("Max of the Softmaxes: ", predicted)
            # print("Train Labels: ", train_labels)
             num_right = (predicted == train_labels).sum().item()
@@ -130,12 +130,12 @@ if __name__=='__main__':
             model.batch_size = len(test_labels)
             model.hidden = model.init_hidden()
             output = model(test_inputs.t())
-            predictions = F.softmax(output,dim=1)
+            loss = loss_function(output, Variable(train_labels))
+            predictions = F.softmax(output.data.cpu(),dim=1)
+           # print("Softmax Outputs: ", predictions)
 
-            loss = loss_function(output, Variable(test_labels))
-
-            # calc testing acc
-            _, predicted = torch.max(predictions.data, 1)
+            # calc training acc
+            _, predicted = torch.max(predictions, 1)
           #  print("Max of the Softmaxes: ", predicted)
            # print("Train Labels: ", train_labels)
             num_right = (predicted == train_labels).sum().item()
