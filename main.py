@@ -98,7 +98,7 @@ if __name__=='__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            predictions = F.softmax(output,dim=1)
+            predictions = F.softmax(output.data.cpu(),dim=1)
            # print("Softmax Outputs: ", predictions)
 
             # calc training acc
