@@ -78,7 +78,7 @@ if __name__=='__main__':
                     )
 
     test_loader = DataLoader(dtest_set,
-                        batch_size=10,
+                        batch_size=batch_size,
                         shuffle=True,
                         num_workers=4
                         )
@@ -133,7 +133,6 @@ if __name__=='__main__':
     total_acc = 0.0
     total_loss = 0.0
     total = 0.0
-    model.batch_size=10
     for (i, testdata) in enumerate(test_loader):
         test_inputs, test_labels = testdata
 
