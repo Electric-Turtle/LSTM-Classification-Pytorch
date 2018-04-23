@@ -85,6 +85,8 @@ if __name__=='__main__':
         total = 0.0
         for (i, traindata) in enumerate(train_loader):
             train_inputs, train_labels = traindata
+            if(train_inputs.size()[0]!=batch_size):
+                continue
           #  print("Train Inputs", train_inputs)
             if use_gpu:
                 train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
