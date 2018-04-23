@@ -1,4 +1,3 @@
-from tqdm import tqdm as tqdm
 import os
 import torch
 import copy
@@ -84,8 +83,7 @@ if __name__=='__main__':
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        t = tqdm(train_loader, desc = 'Training epoch %d' % epoch)
-        for (iter, traindata) in enumerate(t):
+        for (iter, traindata) in enumerate(train_loader):
             train_inputs, train_labels = traindata
           #  print("Train Inputs", train_inputs)
             if use_gpu:
@@ -113,16 +111,16 @@ if __name__=='__main__':
             total += len(train_labels)
             total_loss += loss.data.item()
             percent_correct = float(total_acc)/float(total)
-            t.set_postfix(average_loss = float(total_loss)/float(total), percent_correct = 100*percent_correct)
-
+            print("Percent Correct: ", percent_correct)
+            print("Average Loss: ", total_loss/total)
+            
         train_loss_.append(float(total_loss) / float(total))
         train_acc_.append(float(total_acc) / float(total))
         ## testing epoch
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        t = tqdm(test_loader, desc = 'Validation epoch %d' % epoch)
-        for (iter, testdata) in enumerate(t):
+        for (iter, testdata) in enumerate(test_loader):
             test_inputs, test_labels = testdata
 
             if use_gpu:
@@ -146,7 +144,6 @@ if __name__=='__main__':
             total += len(train_labels)
             total_loss += loss.data.item()
             percent_correct = float(total_acc)/float(total)
-            t.set_postfix(average_loss = float(total_loss)/float(total), percent_correct = 100*percent_correct)
 
         test_loss_.append(float(total_loss) / float(total))
         test_acc_.append(float(total_acc) / float(total))
