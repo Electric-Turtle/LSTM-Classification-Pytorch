@@ -183,6 +183,8 @@ if __name__=='__main__':
         import PlotFigure as PF
         PF.PlotFigure(result, use_save)
     if use_save:
+        dt = datetime.now().strftime("%d-%h-%m-%s")
+
         filename = 'log/LSTM_classifier_model_' + dt + '.pkl'
         fp = open(filename, 'wb')
         pickle.dump(model, fp)
