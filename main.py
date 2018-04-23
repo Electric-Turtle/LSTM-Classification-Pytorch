@@ -21,7 +21,7 @@ TEST_LABELS = 'labels.txt'
 
 ## parameter setting
 epochs = 50
-batch_size = 512
+batch_size = 64
 use_gpu = torch.cuda.is_available()
 learning_rate = 0.01
 
@@ -99,7 +99,7 @@ if __name__=='__main__':
             total_loss += loss.data[0]
 
         train_loss_.append(total_loss / total)
-        #train_acc_.append(total_acc / total)
+        train_acc_.append(float(total_acc) / float(total))
         ## testing epoch
         total_acc = 0.0
         total_loss = 0.0
@@ -124,10 +124,10 @@ if __name__=='__main__':
             total += len(test_labels)
             total_loss += loss.data[0]
         test_loss_.append(total_loss / total)
-        #test_acc_.append(total_acc / total)
+        test_acc_.append(float(total_acc) / float(total))
 
-        print('[Epoch: %3d/%3d] Training Loss: %.3f, Testing Loss: %.3f'
-              % (epoch, epochs, train_loss_[epoch], test_loss_[epoch]))
+        print('[Epoch: %d/%d] Training Loss: %.6f, Testing Loss: %.6f, Train Accuracy: %.3f, Test Accuracy: %.3f'
+              % (epoch, epochs, train_loss_[epoch], test_loss_[epoch], train_acc_[epoch], test_acc_[epoch]))
 
     param = {}
     param['lr'] = learning_rate
