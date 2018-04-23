@@ -99,7 +99,7 @@ if __name__=='__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            predictions = F.softmax(output.data.cpu(),dim=1)
+            predictions = F.softmax(output,dim=1)
            # print("Softmax Outputs: ", predictions)
 
             # calc training acc
@@ -131,8 +131,10 @@ if __name__=='__main__':
             model.batch_size = len(test_labels)
             model.hidden = model.init_hidden()
             output = model(test_inputs.t())
+           # print("Raw Outputs", output)
+          #  print("Labels", train_labels)
             loss = loss_function(output, Variable(train_labels))
-            predictions = F.softmax(output.data.cpu(),dim=1)
+            predictions = F.softmax(output,dim=1)
            # print("Softmax Outputs: ", predictions)
 
             # calc training acc
@@ -145,6 +147,8 @@ if __name__=='__main__':
             total += len(train_labels)
             total_loss += loss.data.item()
             percent_correct = float(total_acc)/float(total)
+            print("Validation Percent Correct: ", percent_correct)
+            print("Validation Average Loss: ", total_loss/total)
 
         test_loss_.append(float(total_loss) / float(total))
         test_acc_.append(float(total_acc) / float(total))
