@@ -91,7 +91,8 @@ if __name__=='__main__':
         for iter, traindata in enumerate(train_loader):
             train_inputs, train_labels = traindata
             train_labels = torch.squeeze(train_labels)
-
+            print(train_inputs)
+            print(train_labels)
             if use_gpu:
                 train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
             else: train_inputs = Variable(train_inputs)

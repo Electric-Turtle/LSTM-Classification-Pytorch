@@ -24,7 +24,6 @@ TEST_LABELS = 'labels.txt'
 
 ## parameter setting
 epochs = 50
-use_gpu = torch.cuda.is_available()
 learning_rate = 0.01
 
 def adjust_learning_rate(optimizer, epoch):
@@ -36,9 +35,12 @@ def adjust_learning_rate(optimizer, epoch):
 if __name__=='__main__':
     ### parameter setting    
     parser = argparse.ArgumentParser(description="LSTM URL Classification Training")
+    parser.add_argument("--use_gpu", type=bool, default=False, help="Accelerate with GPU")
     parser.add_argument("--batch_size", type=int, required=True, help="Batch Size")
+    
     args = parser.parse_args()
     batch_size = args.batch_size
+    use_gpu = args.use_gpu
     embedding_dim = 100
     hidden_dim = 50
     url_len = 60
@@ -92,7 +94,11 @@ if __name__=='__main__':
             else: train_inputs = Variable(train_inputs)
 
             model.hidden = model.init_hidden()
-            output = model(train_inputs.t())
+            try:
+                output = model(train_inputs.t())
+            except:
+                print("Output failed to compute for some reason... Skipping that input")
+                continue
            # print("Raw Outputs", output)
           #  print("Labels", train_labels)
 
@@ -131,7 +137,11 @@ if __name__=='__main__':
 
             model.batch_size = len(test_labels)
             model.hidden = model.init_hidden()
-            output = model(test_inputs.t())
+            try:
+                output = model(test_inputs.t())
+            except:
+                print("Output failed to compute for some reason... Skipping that input")
+                continue
            # print("Raw Outputs", output)
           #  print("Labels", train_labels)
             loss = loss_function(output, Variable(test_labels))
