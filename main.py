@@ -85,7 +85,6 @@ if __name__=='__main__':
         total_loss = 0.0
         total = 0.0
         t = tqdm(train_loader, desc = 'Training epoch %d' % epoch)
-        counter=0
         for (iter, traindata) in enumerate(t):
             train_inputs, train_labels = traindata
           #  print("Train Inputs", train_inputs)
@@ -113,17 +112,17 @@ if __name__=='__main__':
             total_acc += num_right
             total += len(train_labels)
             total_loss += loss.data.item()
-            counter+=batch_size
             percent_correct = float(total_acc)/float(total)
-            t.set_postfix(average_loss = float(total_loss)/float(counter), percent_correct = 100*percent_correct)
+            t.set_postfix(average_loss = float(total_loss)/float(total), percent_correct = 100*percent_correct)
 
-        train_loss_.append(total_loss / total)
+        train_loss_.append(float(total_loss) / float(total))
         train_acc_.append(float(total_acc) / float(total))
         ## testing epoch
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        for iter, testdata in enumerate(test_loader):
+        t = tqdm(test_loader, desc = 'Validation epoch %d' % epoch)
+        for (iter, testdata) in enumerate(t):
             test_inputs, test_labels = testdata
 
             if use_gpu:
@@ -139,11 +138,17 @@ if __name__=='__main__':
 
             # calc testing acc
             _, predicted = torch.max(predictions.data, 1)
+          #  print("Max of the Softmaxes: ", predicted)
+           # print("Train Labels: ", train_labels)
             num_right = (predicted == train_labels).sum().item()
+           # print("Got ", num_right, " correct")
             total_acc += num_right
-            total += len(test_labels)
+            total += len(train_labels)
             total_loss += loss.data.item()
-        test_loss_.append(total_loss / total)
+            percent_correct = float(total_acc)/float(total)
+            t.set_postfix(average_loss = float(total_loss)/float(total), percent_correct = 100*percent_correct)
+
+        test_loss_.append(float(total_loss) / float(total))
         test_acc_.append(float(total_acc) / float(total))
 
         print('[Epoch: %d/%d] Training Loss: %.6f, Testing Loss: %.6f, Train Accuracy: %.3f, Test Accuracy: %.3f'
