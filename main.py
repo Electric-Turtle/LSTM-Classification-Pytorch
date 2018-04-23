@@ -6,24 +6,25 @@ import utils.DataProcessing as DP
 import utils.LSTMClassifier as LSTMC
 import torch.optim as optim
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd import Variable
-from utils.DataLoading import GetURLcharset, URLCharDataset
-import argparse
-import time
-use_plot = False
+
+use_plot = True
 use_save = True
 if use_save:
     import pickle
     from datetime import datetime
 
-TRAIN_URLS = 'urls.txt'
-TRAIN_LABELS = 'labels.txt'
-TEST_URLS = 'urls.txt'
-TEST_LABELS = 'labels.txt'
+DATA_DIR = 'data'
+TRAIN_DIR = 'train_txt'
+TEST_DIR = 'test_txt'
+TRAIN_FILE = 'train_txt.txt'
+TEST_FILE = 'test_txt.txt'
+TRAIN_LABEL = 'train_label.txt'
+TEST_LABEL = 'test_label.txt'
 
 ## parameter setting
 epochs = 50
+batch_size = 5
 use_gpu = torch.cuda.is_available()
 learning_rate = 0.01
 
@@ -34,42 +35,45 @@ def adjust_learning_rate(optimizer, epoch):
     return optimizer
 
 if __name__=='__main__':
-    ### parameter setting    
-    parser = argparse.ArgumentParser(description="LSTM URL Classification Training")
-    parser.add_argument("--batch_size", type=int, required=True, help="Batch Size")
-    args = parser.parse_args()
-    batch_size = args.batch_size
+    ### parameter setting
     embedding_dim = 100
     hidden_dim = 50
-    url_len = 32
-    nlabel = 2
-    regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
-    chars = tuple(regularset)
-    int2char = dict(enumerate(chars))
-    char2int = {ch: ii for ii, ch in int2char.items()}
+    sentence_len = 32
+    train_file = os.path.join(DATA_DIR, TRAIN_FILE)
+    test_file = os.path.join(DATA_DIR, TEST_FILE)
+    fp_train = open(train_file, 'r')
+    train_filenames = [os.path.join(TRAIN_DIR, line.strip()) for line in fp_train]
+    filenames = copy.deepcopy(train_filenames)
+    fp_train.close()
+    fp_test = open(test_file, 'r')
+    test_filenames = [os.path.join(TEST_DIR, line.strip()) for line in fp_test]
+    fp_test.close()
+    filenames.extend(test_filenames)
+
+    corpus = DP.Corpus(DATA_DIR, filenames)
+    nlabel = 8
+
+    ### create model
+    model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
+                           vocab_size=len(corpus.dictionary),label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
+    if use_gpu:
+        model = model.cuda()
     ### data processing
-    dtrain_set = URLCharDataset(int2char, char2int, url_len, TRAIN_URLS, TRAIN_LABELS)
+    dtrain_set = DP.TxtDatasetProcessing(DATA_DIR, TRAIN_DIR, TRAIN_FILE, TRAIN_LABEL, sentence_len, corpus)
 
     train_loader = DataLoader(dtrain_set,
                           batch_size=batch_size,
                           shuffle=True,
                           num_workers=4
                          )
-    dtest_set = URLCharDataset(int2char, char2int, url_len, TEST_URLS, TEST_LABELS)
+    dtest_set = DP.TxtDatasetProcessing(DATA_DIR, TEST_DIR, TEST_FILE, TEST_LABEL, sentence_len, corpus)
 
     test_loader = DataLoader(dtest_set,
                           batch_size=batch_size,
-                          shuffle=True,
+                          shuffle=False,
                           num_workers=4
                          )
-    ### create model
-    model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
-                           vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
-    if use_gpu:
-        print("CUDA-compatible GPU was detected, accelerating with GPU-compute")
-        model = model.cuda()
-    else:
-        print("No GPU detected, using slow-as-balls CPU training")
+
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
@@ -77,53 +81,45 @@ if __name__=='__main__':
     train_acc_ = []
     test_acc_ = []
     ### training procedure
-    model.batch_size = batch_size
     for epoch in range(epochs):
+        optimizer = adjust_learning_rate(optimizer, epoch)
 
         ## training epoch
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        for (iter, traindata) in enumerate(train_loader):
+        for iter, traindata in enumerate(train_loader):
             train_inputs, train_labels = traindata
-          #  print("Train Inputs", train_inputs)
+            train_labels = torch.squeeze(train_labels)
+
             if use_gpu:
                 train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
             else: train_inputs = Variable(train_inputs)
 
+            model.zero_grad()
+            model.batch_size = len(train_labels)
             model.hidden = model.init_hidden()
             output = model(train_inputs.t())
-           # print("Raw Outputs", output)
-          #  print("Labels", train_labels)
 
             loss = loss_function(output, Variable(train_labels))
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            predictions = F.softmax(output,dim=1)
-           # print("Softmax Outputs: ", predictions)
 
             # calc training acc
-            _, predicted = torch.max(predictions, 1)
-          #  print("Max of the Softmaxes: ", predicted)
-           # print("Train Labels: ", train_labels)
-            num_right = (predicted == train_labels).sum().item()
-           # print("Got ", num_right, " correct")
-            total_acc += num_right
+            _, predicted = torch.max(output.data, 1)
+            total_acc += (predicted == train_labels).sum()
             total += len(train_labels)
-            total_loss += loss.data.item()
-            percent_correct = float(total_acc)/float(total)
-            print("Percent Correct: ", percent_correct)
-            print("Average Loss: ", total_loss/total)
-            
-        train_loss_.append(float(total_loss) / float(total))
-        train_acc_.append(float(total_acc) / float(total))
+            total_loss += loss.data[0]
+
+        train_loss_.append(total_loss / total)
+        train_acc_.append(total_acc / total)
         ## testing epoch
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        for (iter, testdata) in enumerate(test_loader):
+        for iter, testdata in enumerate(test_loader):
             test_inputs, test_labels = testdata
+            test_labels = torch.squeeze(test_labels)
 
             if use_gpu:
                 test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
@@ -132,29 +128,18 @@ if __name__=='__main__':
             model.batch_size = len(test_labels)
             model.hidden = model.init_hidden()
             output = model(test_inputs.t())
-           # print("Raw Outputs", output)
-          #  print("Labels", train_labels)
+
             loss = loss_function(output, Variable(test_labels))
-            predictions = F.softmax(output,dim=1)
-           # print("Softmax Outputs: ", predictions)
 
-            # calc training acc
-            _, predicted = torch.max(predictions, 1)
-          #  print("Max of the Softmaxes: ", predicted)
-           # print("Train Labels: ", train_labels)
-            num_right = (predicted == test_labels).sum().item()
-           # print("Got ", num_right, " correct")
-            total_acc += num_right
+            # calc testing acc
+            _, predicted = torch.max(output.data, 1)
+            total_acc += (predicted == test_labels).sum()
             total += len(test_labels)
-            total_loss += loss.data.item()
-            percent_correct = float(total_acc)/float(total)
-            print("Validation Percent Correct: ", percent_correct)
-            print("Validation Average Loss: ", total_loss/total)
+            total_loss += loss.data[0]
+        test_loss_.append(total_loss / total)
+        test_acc_.append(total_acc / total)
 
-        test_loss_.append(float(total_loss) / float(total))
-        test_acc_.append(float(total_acc) / float(total))
-
-        print('[Epoch: %d/%d] Training Loss: %.6f, Testing Loss: %.6f, Train Accuracy: %.3f, Test Accuracy: %.3f'
+        print('[Epoch: %3d/%3d] Training Loss: %.3f, Testing Loss: %.3f, Training Acc: %.3f, Testing Acc: %.3f'
               % (epoch, epochs, train_loss_[epoch], test_loss_[epoch], train_acc_[epoch], test_acc_[epoch]))
 
     param = {}
@@ -162,7 +147,7 @@ if __name__=='__main__':
     param['batch size'] = batch_size
     param['embedding dim'] = embedding_dim
     param['hidden dim'] = hidden_dim
-    param['sentence len'] = url_len
+    param['sentence len'] = sentence_len
 
     result = {}
     result['train loss'] = train_loss_
