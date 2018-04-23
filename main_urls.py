@@ -57,6 +57,7 @@ if __name__=='__main__':
                         shuffle=True,
                         num_workers=4
                         )
+    dtest_set = URLCharDataset(int2char, char2int, url_len, TEST_URLS, TEST_LABELS)
     ### create model
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
                            vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
@@ -72,14 +73,11 @@ if __name__=='__main__':
     ### training procedure
     optimizer.zero_grad()
     for epoch in range(epochs):
-        dtrain_set = URLCharDataset(int2char, char2int, url_len, TRAIN_URLS, TRAIN_LABELS)
-
         train_loader = DataLoader(dtrain_set,
                             batch_size=batch_size,
                             shuffle=True,
                             num_workers=4
                             )
-        dtest_set = URLCharDataset(int2char, char2int, url_len, TEST_URLS, TEST_LABELS)
 
         test_loader = DataLoader(dtest_set,
                             batch_size=batch_size,
