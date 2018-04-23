@@ -31,41 +31,38 @@ shuffle(malicious_examples)
 
 num_benign = len(benign_examples)
 num_malicious = len(malicious_examples)
+print("Total Benign Examples:", num_benign)
+print("Total Malicious Examples:", num_malicious)
 train_urls_out = open('train_urls.txt','w')
 train_labels_out = open('train_labels.txt','w')
-
-
 val_urls_out = open('val_urls.txt','w')
 val_labels_out = open('val_labels.txt','w')
 
+val_percentage = 0.1
 
-val_percentage = 0.2
-
-num_benign_val = int(val_percentage * num_benign)
-num_benign_train = num_benign - num_benign_val
-
-
-print(num_benign_val, num_benign_train)
-
-for i in range(len(benign_examples)):
-    if i <= num_benign_val:
-        val_urls_out.write(benign_examples[i] + "\n")
-        val_labels_out.write("1\n")
-    else:
-        train_urls_out.write(benign_examples[i] + "\n")
-        train_labels_out.write("1\n")        
+num_malicious_val = int(val_percentage*num_malicious)
+malicious_val = malicious_examples[:num_malicious_val]
+malicious_train = malicious_examples[num_malicious_val:]
+for url in malicious_val:
+  val_urls_out.write("%s\n" % url)
+  val_labels_out.write("%d\n" % 0)
+for url in malicious_train:
+  train_urls_out.write("%s\n" % url)
+  train_labels_out.write("%d\n" % 0)
 
 
-num_malicious_val = int(val_percentage * num_malicious)
-num_malicious_train = num_malicious - num_malicious_val
-print(num_malicious_val, num_malicious_train)
-for i in range(len(malicious_examples)):
-    if i <= num_benign_val:
-        val_urls_out.write(malicious_examples[i] + "\n")
-        val_labels_out.write("0\n")
-    else:
-        train_urls_out.write(malicious_examples[i] + "\n")
-        train_labels_out.write("0\n")   
+num_benign_val = int(val_percentage*num_benign)
+benign_val = benign_examples[:num_benign_val]
+benign_train = benign_examples[num_benign_val:]
+for url in benign_val:
+  val_urls_out.write("%s\n" % url)
+  val_labels_out.write("%d\n" % 1)
+for url in benign_train:
+  train_urls_out.write("%s\n" % url)
+  train_labels_out.write("%d\n" % 1)
+
+
+
 
 
 
