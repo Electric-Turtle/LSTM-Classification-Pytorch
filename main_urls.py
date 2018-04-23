@@ -40,6 +40,7 @@ if __name__=='__main__':
     parser.add_argument("--embedding_dim", type=int, default=80, help="Embedding Dimension of the URL Tokens")
     parser.add_argument("--url_len", type=int, default=60, help="Clips all URLs to this length")
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs to run")
+    parser.add_argument("--learning_rate", type=float, default=0.005, help="Number of training epochs to run")
     
     args = parser.parse_args()
     batch_size = args.batch_size
@@ -48,6 +49,7 @@ if __name__=='__main__':
     hidden_dim = args.hidden_dim
     url_len = args.url_len
     epochs = args.epochs
+    learning_rate=args.learning_rate
     nlabel = 2
     regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
     chars = tuple(regularset)
@@ -62,7 +64,7 @@ if __name__=='__main__':
     model.batch_size = batch_size
     if use_gpu:
         model = model.cuda()
-    optimizer = optim.SGD(model.parameters(), lr=0.0005)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
     test_loss_ = []
