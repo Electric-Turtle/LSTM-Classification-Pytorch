@@ -115,7 +115,6 @@ if __name__=='__main__':
             percent_correct = float(total_acc)/float(total)
             print("Percent Correct: ", percent_correct)
             print("Average Loss: ", total_loss/total)
-            time.sleep(1)
             
         train_loss_.append(float(total_loss) / float(total))
         train_acc_.append(float(total_acc) / float(total))
