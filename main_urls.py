@@ -148,7 +148,6 @@ if __name__=='__main__':
             print("Output failed to compute for some reason... Skipping that input")
             continue
         print("Raw Outputs", output)
-        print("Labels", train_labels)
         loss = loss_function(output, Variable(test_labels))
         predictions = F.softmax(output,dim=1)
         print("Softmax Outputs: ", predictions)
@@ -156,7 +155,7 @@ if __name__=='__main__':
         # calc training acc
         _, predicted = torch.max(predictions, 1)
         print("Max of the Softmaxes: ", predicted)
-        print("Train Labels: ", train_labels)
+        print("Labels", test_labels)
         num_right = (predicted == test_labels).sum().item()
         #print("Got ", num_right, " correct")
         total_acc += num_right
