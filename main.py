@@ -21,7 +21,7 @@ TEST_LABELS = 'labels.txt'
 
 ## parameter setting
 epochs = 50
-batch_size = 64
+batch_size = 512
 use_gpu = torch.cuda.is_available()
 learning_rate = 0.01
 
@@ -77,7 +77,6 @@ if __name__=='__main__':
         total = 0.0
         for iter, traindata in enumerate(train_loader):
             train_inputs, train_labels = traindata
-            print(train_inputs.size(), train_labels.size())
             train_labels = torch.squeeze(train_labels)
 
             if use_gpu:
