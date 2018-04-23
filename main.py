@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
 from utils.DataLoading import GetURLcharset, URLCharDataset
+import argparse
 use_plot = False
 use_save = True
 if use_save:
@@ -21,7 +22,6 @@ TEST_LABELS = 'labels.txt'
 
 ## parameter setting
 epochs = 50
-batch_size = 64
 use_gpu = torch.cuda.is_available()
 learning_rate = 0.01
 
@@ -32,7 +32,11 @@ def adjust_learning_rate(optimizer, epoch):
     return optimizer
 
 if __name__=='__main__':
-    ### parameter setting
+    ### parameter setting    
+    parser = argparse.ArgumentParser(description="LSTM URL Classification Training")
+    parser.add_argument("--batch_size", type=int, required=True, help="Batch Size")
+    args = parser.parse_args()
+    batch_size = args.batch_size
     embedding_dim = 100
     hidden_dim = 50
     url_len = 32
@@ -53,7 +57,7 @@ if __name__=='__main__':
 
     test_loader = DataLoader(dtest_set,
                           batch_size=batch_size,
-                          shuffle=False,
+                          shuffle=True,
                           num_workers=4
                          )
     ### create model
@@ -69,7 +73,6 @@ if __name__=='__main__':
     test_acc_ = []
     ### training procedure
     for epoch in range(epochs):
-        optimizer = adjust_learning_rate(optimizer, epoch)
 
         ## training epoch
         total_acc = 0.0
@@ -83,12 +86,12 @@ if __name__=='__main__':
                 train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
             else: train_inputs = Variable(train_inputs)
 
-            model.zero_grad()
             model.batch_size = len(train_labels)
             model.hidden = model.init_hidden()
             output = model(train_inputs.t())
 
             loss = loss_function(output, Variable(train_labels))
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
