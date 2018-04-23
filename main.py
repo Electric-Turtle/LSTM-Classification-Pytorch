@@ -6,6 +6,7 @@ import utils.DataProcessing as DP
 import utils.LSTMClassifier as LSTMC
 import torch.optim as optim
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.autograd import Variable
 from utils.DataLoading import GetURLcharset, URLCharDataset
 import argparse
@@ -66,6 +67,8 @@ if __name__=='__main__':
     if use_gpu:
         print("CUDA-compatible GPU was detected, accelerating with GPU-compute")
         model = model.cuda()
+    else:
+        print("No GPU detected, using slow-as-balls CPU training")
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
@@ -73,6 +76,7 @@ if __name__=='__main__':
     train_acc_ = []
     test_acc_ = []
     ### training procedure
+    model.batch_size = batch_size
     for epoch in range(epochs):
 
         ## training epoch
@@ -81,26 +85,31 @@ if __name__=='__main__':
         total = 0.0
         for iter, traindata in enumerate(train_loader):
             train_inputs, train_labels = traindata
-            train_labels = torch.squeeze(train_labels)
-
+          #  print("Train Inputs", train_inputs)
             if use_gpu:
                 train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
             else: train_inputs = Variable(train_inputs)
 
-            model.batch_size = len(train_labels)
             model.hidden = model.init_hidden()
             output = model(train_inputs.t())
+          #  print("Raw Outputs", output)
 
             loss = loss_function(output, Variable(train_labels))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            predictions = F.softmax(output,dim=1)
+           # print("Softmax Outputs: ", predictions)
 
             # calc training acc
-            _, predicted = torch.max(output.data, 1)
-            total_acc += (predicted == train_labels).sum()
+            _, predicted = torch.max(predictions.data, 1)
+          #  print("Max of the Softmaxes: ", predicted)
+           # print("Train Labels: ", train_labels)
+            num_right = (predicted == train_labels).sum().item()
+           # print("Got ", num_right, " correct")
+            total_acc += num_right
             total += len(train_labels)
-            total_loss += loss.data[0]
+            total_loss += loss.data.item()
 
         train_loss_.append(total_loss / total)
         train_acc_.append(float(total_acc) / float(total))
@@ -110,7 +119,6 @@ if __name__=='__main__':
         total = 0.0
         for iter, testdata in enumerate(test_loader):
             test_inputs, test_labels = testdata
-            test_labels = torch.squeeze(test_labels)
 
             if use_gpu:
                 test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
@@ -119,14 +127,16 @@ if __name__=='__main__':
             model.batch_size = len(test_labels)
             model.hidden = model.init_hidden()
             output = model(test_inputs.t())
+            predictions = F.softmax(output,dim=1)
 
             loss = loss_function(output, Variable(test_labels))
 
             # calc testing acc
-            _, predicted = torch.max(output.data, 1)
-            total_acc += (predicted == test_labels).sum()
+            _, predicted = torch.max(predictions.data, 1)
+            num_right = (predicted == train_labels).sum().item()
+            total_acc += num_right
             total += len(test_labels)
-            total_loss += loss.data[0]
+            total_loss += loss.data.item()
         test_loss_.append(total_loss / total)
         test_acc_.append(float(total_acc) / float(total))
 
