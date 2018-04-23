@@ -177,10 +177,22 @@ if __name__=='__main__':
         import PlotFigure as PF
         PF.PlotFigure(result, use_save)
     if use_save:
-        filename = 'log/LSTM_classifier_' + datetime.now().strftime("%d-%h-%m-%s") + '.pkl'
+        dt = datetime.now().strftime("%d-%h-%m-%s")
+        filename = 'log/LSTM_classifier_' + dt + '.pkl'
         result['filename'] = filename
-
         fp = open(filename, 'wb')
         pickle.dump(result, fp)
+        fp.close()
+        print('File %s is saved.' % filename)
+
+        filename = 'log/LSTM_classifier_model_' + dt + '.pkl'
+        fp = open(filename, 'wb')
+        pickle.dump(model, fp)
+        fp.close()
+        print('File %s is saved.' % filename)
+
+        filename = 'log/LSTM_classifier_dataset_' + dt + '.pkl'
+        fp = open(filename, 'wb')
+        pickle.dump(dtrain_set, fp)
         fp.close()
         print('File %s is saved.' % filename)
