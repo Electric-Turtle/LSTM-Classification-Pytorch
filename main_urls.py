@@ -23,7 +23,6 @@ TEST_URLS = 'urls.txt'
 TEST_LABELS = 'labels.txt'
 
 ## parameter setting
-epochs = 10
 learning_rate = 0.01
 
 def adjust_learning_rate(optimizer, epoch):
@@ -40,6 +39,7 @@ if __name__=='__main__':
     parser.add_argument("--hidden_dim", type=int, default=30, help="Hidden Dimension of the LSTM")
     parser.add_argument("--embedding_dim", type=int, default=80, help="Embedding Dimension of the URL Tokens")
     parser.add_argument("--url_len", type=int, default=60, help="Clips all URLs to this length")
+    parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs to run")
     
     args = parser.parse_args()
     batch_size = args.batch_size
@@ -47,6 +47,7 @@ if __name__=='__main__':
     embedding_dim = args.embedding_dim
     hidden_dim = args.hidden_dim
     url_len = args.url_len
+    epochs = args.epochs
     nlabel = 2
     regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
     chars = tuple(regularset)
