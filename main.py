@@ -60,6 +60,7 @@ if __name__=='__main__':
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
                            vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
     if use_gpu:
+        print("CUDA-compatible GPU was detected, accelerating with GPU-compute")
         model = model.cuda()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
