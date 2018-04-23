@@ -37,13 +37,16 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description="LSTM URL Classification Training")
     parser.add_argument("--use_gpu", type=bool, default=False, help="Accelerate with GPU")
     parser.add_argument("--batch_size", type=int, required=True, help="Batch Size")
+    parser.add_argument("--hidden_dim", type=int, default=30, help="Hidden Dimension of the LSTM")
+    parser.add_argument("--embedding_dim", type=int, default=80, help="Embedding Dimension of the URL Tokens")
+    parser.add_argument("--url_len", type=int, default=60, help="Clips all URLs to this length")
     
     args = parser.parse_args()
     batch_size = args.batch_size
     use_gpu = args.use_gpu
-    embedding_dim = 100
-    hidden_dim = 50
-    url_len = 60
+    embedding_dim = args.embedding_dim
+    hidden_dim = args.hidden_dim
+    url_len = args.url_len
     nlabel = 2
     regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
     chars = tuple(regularset)
