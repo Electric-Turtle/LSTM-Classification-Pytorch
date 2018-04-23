@@ -142,10 +142,10 @@ if __name__=='__main__':
             _, predicted = torch.max(predictions, 1)
           #  print("Max of the Softmaxes: ", predicted)
            # print("Train Labels: ", train_labels)
-            num_right = (predicted == train_labels).sum().item()
+            num_right = (predicted == test_labels).sum().item()
            # print("Got ", num_right, " correct")
             total_acc += num_right
-            total += len(train_labels)
+            total += len(test_labels)
             total_loss += loss.data.item()
             percent_correct = float(total_acc)/float(total)
             print("Validation Percent Correct: ", percent_correct)
