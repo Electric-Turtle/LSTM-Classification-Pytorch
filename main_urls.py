@@ -17,10 +17,10 @@ if use_save:
     import pickle
     from datetime import datetime
 
-TRAIN_URLS = 'urls.txt'
-TRAIN_LABELS = 'labels.txt'
-TEST_URLS = 'urls.txt'
-TEST_LABELS = 'labels.txt'
+TRAIN_URLS = 'train_urls.txt'
+TRAIN_LABELS = 'train_labels.txt'
+TEST_URLS = 'val_urls.txt'
+TEST_LABELS = 'val_labels.txt'
 
 ## parameter setting
 learning_rate = 0.01
@@ -61,7 +61,7 @@ if __name__=='__main__':
     ### create model
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
                            vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
-    model.batch_size = batch_size
+    
     if use_gpu:
         model = model.cuda()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
@@ -78,10 +78,11 @@ if __name__=='__main__':
                     )
 
     test_loader = DataLoader(dtest_set,
-                        batch_size=batch_size,
-                        shuffle=True,
+                        batch_size=1,
+                        shuffle=False,
                         num_workers=4
                         )
+    model.batch_size = batch_size
     for epoch in range(epochs):
 
         ## training epoch
@@ -95,6 +96,7 @@ if __name__=='__main__':
             if(train_inputs.size()[0]!=batch_size):
                 continue
           #  print("Train Inputs", train_inputs)
+           
             if use_gpu:
                 train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
             else: train_inputs = Variable(train_inputs)
@@ -104,9 +106,7 @@ if __name__=='__main__':
                 output = model(train_inputs.t())
             except:
                 print("Output failed to compute for some reason.")
-                print(train_inputs)
-                print(train_labels)
-                exit()
+                continue
            # print("Raw Outputs", output)
           #  print("Labels", train_labels)
 
@@ -133,6 +133,7 @@ if __name__=='__main__':
     total_acc = 0.0
     total_loss = 0.0
     total = 0.0
+    model.batch_size=test_loader.batch_size
     for (i, testdata) in enumerate(test_loader):
         test_inputs, test_labels = testdata
 
@@ -140,7 +141,6 @@ if __name__=='__main__':
             test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
         else: test_inputs = Variable(test_inputs)
 
-        model.batch_size = len(test_labels)
         model.hidden = model.init_hidden()
         try:
             output = model(test_inputs.t())
