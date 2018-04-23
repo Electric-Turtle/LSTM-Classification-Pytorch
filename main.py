@@ -134,7 +134,7 @@ if __name__=='__main__':
             output = model(test_inputs.t())
            # print("Raw Outputs", output)
           #  print("Labels", train_labels)
-            loss = loss_function(output, Variable(train_labels))
+            loss = loss_function(output, Variable(test_labels))
             predictions = F.softmax(output,dim=1)
            # print("Softmax Outputs: ", predictions)
 
