@@ -7,7 +7,7 @@ import utils.LSTMClassifier as LSTMC
 import torch.optim as optim
 import torch.nn as nn
 from torch.autograd import Variable
-
+from utils.DataLoading import GetURLcharset, URLCharDataset
 use_plot = True
 use_save = True
 if use_save:
@@ -24,7 +24,7 @@ TEST_LABEL = 'test_label.txt'
 
 ## parameter setting
 epochs = 50
-batch_size = 5
+batch_size = 64
 use_gpu = torch.cuda.is_available()
 learning_rate = 0.01
 
@@ -38,7 +38,7 @@ if __name__=='__main__':
     ### parameter setting
     embedding_dim = 100
     hidden_dim = 50
-    sentence_len = 32
+    url_len = 32
     train_file = os.path.join(DATA_DIR, TRAIN_FILE)
     test_file = os.path.join(DATA_DIR, TEST_FILE)
     fp_train = open(train_file, 'r')
@@ -51,29 +51,32 @@ if __name__=='__main__':
     filenames.extend(test_filenames)
 
     corpus = DP.Corpus(DATA_DIR, filenames)
-    nlabel = 8
+    nlabel = 2
 
-    ### create model
-    model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
-                           vocab_size=len(corpus.dictionary),label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
-    if use_gpu:
-        model = model.cuda()
+    regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
+    chars = tuple(regularset)
+    int2char = dict(enumerate(chars))
+    char2int = {ch: ii for ii, ch in int2char.items()}
     ### data processing
-    dtrain_set = DP.TxtDatasetProcessing(DATA_DIR, TRAIN_DIR, TRAIN_FILE, TRAIN_LABEL, sentence_len, corpus)
+    dtrain_set = URLCharDataset(int2char, char2int, url_len, 'urls.txt', 'labels.txt')
 
     train_loader = DataLoader(dtrain_set,
                           batch_size=batch_size,
                           shuffle=True,
                           num_workers=4
                          )
-    dtest_set = DP.TxtDatasetProcessing(DATA_DIR, TEST_DIR, TEST_FILE, TEST_LABEL, sentence_len, corpus)
+    dtest_set = URLCharDataset(int2char, char2int, url_len, 'urls.txt', 'labels.txt')
 
     test_loader = DataLoader(dtest_set,
                           batch_size=batch_size,
                           shuffle=False,
                           num_workers=4
                          )
-
+    ### create model
+    model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
+                           vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
+    if use_gpu:
+        model = model.cuda()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
@@ -90,6 +93,7 @@ if __name__=='__main__':
         total = 0.0
         for iter, traindata in enumerate(train_loader):
             train_inputs, train_labels = traindata
+            print(train_inputs.size(), train_labels.size())
             train_labels = torch.squeeze(train_labels)
 
             if use_gpu:
@@ -112,7 +116,7 @@ if __name__=='__main__':
             total_loss += loss.data[0]
 
         train_loss_.append(total_loss / total)
-        train_acc_.append(total_acc / total)
+        #train_acc_.append(total_acc / total)
         ## testing epoch
         total_acc = 0.0
         total_loss = 0.0
@@ -137,17 +141,17 @@ if __name__=='__main__':
             total += len(test_labels)
             total_loss += loss.data[0]
         test_loss_.append(total_loss / total)
-        test_acc_.append(total_acc / total)
+        #test_acc_.append(total_acc / total)
 
-        print('[Epoch: %3d/%3d] Training Loss: %.3f, Testing Loss: %.3f, Training Acc: %.3f, Testing Acc: %.3f'
-              % (epoch, epochs, train_loss_[epoch], test_loss_[epoch], train_acc_[epoch], test_acc_[epoch]))
+        print('[Epoch: %3d/%3d] Training Loss: %.3f, Testing Loss: %.3f'
+              % (epoch, epochs, train_loss_[epoch], test_loss_[epoch]))
 
     param = {}
     param['lr'] = learning_rate
     param['batch size'] = batch_size
     param['embedding dim'] = embedding_dim
     param['hidden dim'] = hidden_dim
-    param['sentence len'] = sentence_len
+    param['sentence len'] = url_len
 
     result = {}
     result['train loss'] = train_loss_
