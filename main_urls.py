@@ -67,6 +67,9 @@ if __name__=='__main__':
     ### create model
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
                            vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
+    model.batch_size = batch_size
+    if use_gpu:
+        model = model.cuda()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
@@ -74,7 +77,6 @@ if __name__=='__main__':
     train_acc_ = []
     test_acc_ = []
     ### training procedure
-    model.batch_size = batch_size
     for epoch in range(epochs):
 
         ## training epoch
