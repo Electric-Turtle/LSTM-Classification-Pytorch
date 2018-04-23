@@ -51,12 +51,6 @@ if __name__=='__main__':
     char2int = {ch: ii for ii, ch in int2char.items()}
     ### data processing
     dtrain_set = URLCharDataset(int2char, char2int, url_len, TRAIN_URLS, TRAIN_LABELS)
-
-    train_loader = DataLoader(dtrain_set,
-                        batch_size=batch_size,
-                        shuffle=True,
-                        num_workers=4
-                        )
     dtest_set = URLCharDataset(int2char, char2int, url_len, TEST_URLS, TEST_LABELS)
     ### create model
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
@@ -88,7 +82,7 @@ if __name__=='__main__':
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        for (iter, traindata) in enumerate(train_loader):
+        for (i, traindata) in enumerate(train_loader):
             train_inputs, train_labels = traindata
           #  print("Train Inputs", train_inputs)
             if use_gpu:
@@ -129,7 +123,7 @@ if __name__=='__main__':
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        for (iter, testdata) in enumerate(test_loader):
+        for (i, testdata) in enumerate(test_loader):
             test_inputs, test_labels = testdata
 
             if use_gpu:
@@ -167,7 +161,6 @@ if __name__=='__main__':
 
         print('[Epoch: %d/%d] Training Loss: %.6f, Testing Loss: %.6f, Train Accuracy: %.3f, Test Accuracy: %.3f'
               % (epoch, epochs, train_loss_[epoch], test_loss_[epoch], train_acc_[epoch], test_acc_[epoch]))
-
     param = {}
     param['lr'] = learning_rate
     param['batch size'] = batch_size
