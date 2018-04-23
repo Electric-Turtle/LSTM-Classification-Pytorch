@@ -1,4 +1,3 @@
-from tqdm import tqdm
 import torch.utils.data as data
 import torch
 import torch.nn.functional as F
