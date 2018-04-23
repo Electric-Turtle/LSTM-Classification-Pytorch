@@ -77,6 +77,7 @@ if __name__=='__main__':
     train_acc_ = []
     test_acc_ = []
     ### training procedure
+    optimizer.zero_grad()
     for epoch in range(epochs):
 
         ## training epoch
@@ -100,7 +101,6 @@ if __name__=='__main__':
           #  print("Labels", train_labels)
 
             loss = loss_function(output, Variable(train_labels))
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             predictions = F.softmax(output,dim=1)
