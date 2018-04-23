@@ -94,8 +94,10 @@ if __name__=='__main__':
             try:
                 output = model(train_inputs.t())
             except:
-                print("Output failed to compute for some reason... Skipping that input")
-                continue
+                print("Output failed to compute for some reason.")
+                print(train_inputs)
+                print(train_labels)
+                exit()
            # print("Raw Outputs", output)
           #  print("Labels", train_labels)
 
