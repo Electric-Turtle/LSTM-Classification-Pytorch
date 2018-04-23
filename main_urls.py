@@ -147,23 +147,23 @@ if __name__=='__main__':
         except:
             print("Output failed to compute for some reason... Skipping that input")
             continue
-        print("Raw Outputs", output)
+        #print("Raw Outputs", output)
         loss = loss_function(output, Variable(test_labels))
         predictions = F.softmax(output,dim=1)
-        print("Softmax Outputs: ", predictions)
+        #print("Softmax Outputs: ", predictions)
 
         # calc training acc
         _, predicted = torch.max(predictions, 1)
-        print("Max of the Softmaxes: ", predicted)
-        print("Labels", test_labels)
+        #print("Max of the Softmaxes: ", predicted)
+        #print("Labels", test_labels)
         num_right = (predicted == test_labels).sum().item()
         #print("Got ", num_right, " correct")
         total_acc += num_right
         total += len(test_labels)
         total_loss += loss.data.item()
         percent_correct = float(total_acc)/float(total)
-        print("Validation Percent Correct: ", percent_correct)
-        print("Validation Average Loss: ", total_loss/total)
+        #print("Validation Percent Correct: ", percent_correct)
+        #print("Validation Average Loss: ", total_loss/total)
     param = {}
     param['lr'] = learning_rate
     param['batch size'] = batch_size
