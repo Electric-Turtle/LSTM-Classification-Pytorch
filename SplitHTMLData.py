@@ -2,13 +2,14 @@ from random import shuffle
 from os import listdir
 from os.path import isfile, join
 import pickle
+from tqdm import tqdm as tqdm
 htmlfiles = [f for f in listdir('raw_html') if isfile(join('raw_html', f))]
 malicious_examples = []
 benign_examples = []
 labelsfile = open('labels.txt')
 labels = labelsfile.readlines()
 labelsfile.close()
-for htmlfile in htmlfiles:
+for htmlfile in tqdm(htmlfiles):
   f = join('raw_html', htmlfile)
   ff = open(f)
   try:
