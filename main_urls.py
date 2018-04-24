@@ -47,8 +47,8 @@ def run_epoch(model, train_loader, test_loader, loss_function, optimizer, epoch)
             continue
         #  print("Train Inputs", train_inputs)
         
-        if use_gpu:
-            train_inputs, train_labels = Variable(train_inputs.cuda()), train_labels.cuda()
+        if gpu>=0:
+            train_inputs, train_labels = Variable(train_inputs.cuda(gpu)), train_labels.cuda(gpu)
         else: train_inputs = Variable(train_inputs)
 
         model.hidden = model.init_hidden()
@@ -92,8 +92,8 @@ def run_epoch(model, train_loader, test_loader, loss_function, optimizer, epoch)
     for (i, testdata) in t:
         test_inputs, test_labels = testdata
 
-        if use_gpu:
-            test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
+        if gpu>=0:
+            test_inputs, test_labels = Variable(test_inputs.cuda(gpu)), test_labels.cuda(gpu)
         else: test_inputs = Variable(test_inputs)
 
         model.hidden = model.init_hidden()
@@ -123,7 +123,7 @@ def run_epoch(model, train_loader, test_loader, loss_function, optimizer, epoch)
 if __name__=='__main__':
     ### parameter setting    
     parser = argparse.ArgumentParser(description="LSTM URL Classification Training")
-    parser.add_argument("--use_gpu", type=bool, default=False, help="Accelerate with GPU")
+    parser.add_argument("--gpu", type=int, default=-1, help="Accelerate with GPU")
     parser.add_argument("--batch_size", type=int, required=True, help="Batch Size")
     parser.add_argument("--hidden_dim", type=int, default=30, help="Hidden Dimension of the LSTM")
     parser.add_argument("--embedding_dim", type=int, default=80, help="Embedding Dimension of the URL Tokens")
@@ -134,7 +134,7 @@ if __name__=='__main__':
     args = parser.parse_args()
     html = args.use_html
     batch_size = args.batch_size
-    use_gpu = args.use_gpu
+    gpu = args.gpu
     embedding_dim = args.embedding_dim
     hidden_dim = args.hidden_dim
     input_len = args.input_len
@@ -154,10 +154,10 @@ if __name__=='__main__':
         dtest_set = URLCharDataset(int2char, char2int, input_len, TEST_URLS, TEST_LABELS)
     ### create model
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
-                           vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
+                           vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, gpu=gpu)
     
-    if use_gpu:
-        model = model.cuda()
+    if gpu>=0:
+        model = model.cuda(gpu)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     loss_function = nn.CrossEntropyLoss()
     train_loss_ = []
