@@ -82,7 +82,6 @@ if __name__=='__main__':
                         shuffle=True,
                         num_workers=4
                         )
-    model.batch_size = batch_size
     for epoch in range(epochs):
 
         ## training epoch
@@ -91,6 +90,7 @@ if __name__=='__main__':
         total = 0.0
         print("Starting Training Epoch: ", epoch+1)
         time.sleep(3)
+        model.batch_size = batch_size
         for (i, traindata) in enumerate(train_loader):
             train_inputs, train_labels = traindata
             if(train_inputs.size()[0]!=batch_size):
@@ -129,41 +129,41 @@ if __name__=='__main__':
             percent_correct = float(total_acc)/float(total)
             print("Percent Correct: ", percent_correct)
             print("Average Loss: ", total_loss/total)
-    ## testing epoch
-    total_acc = 0.0
-    total_loss = 0.0
-    total = 0.0
-    model.batch_size = 10
-    for (i, testdata) in enumerate(test_loader):
-        test_inputs, test_labels = testdata
+        ## testing epoch
+        total_acc = 0.0
+        total_loss = 0.0
+        total = 0.0
+        model.batch_size = dtest_set.__len__()/10
+        for (i, testdata) in enumerate(test_loader):
+            test_inputs, test_labels = testdata
 
-        if use_gpu:
-            test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
-        else: test_inputs = Variable(test_inputs)
+            if use_gpu:
+                test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
+            else: test_inputs = Variable(test_inputs)
 
-        model.hidden = model.init_hidden()
-        try:
-            output = model(test_inputs.t())
-        except:
-            print("Output failed to compute for some reason... Skipping that input")
-            continue
-        #print("Raw Outputs", output)
-        loss = loss_function(output, Variable(test_labels))
-        predictions = F.softmax(output,dim=1)
-        #print("Softmax Outputs: ", predictions)
+            model.hidden = model.init_hidden()
+            try:
+                output = model(test_inputs.t())
+            except:
+                print("Output failed to compute for some reason... Skipping that input")
+                continue
+            #print("Raw Outputs", output)
+            loss = loss_function(output, Variable(test_labels))
+            predictions = F.softmax(output,dim=1)
+            #print("Softmax Outputs: ", predictions)
 
-        # calc training acc
-        _, predicted = torch.max(predictions, 1)
-        #print("Max of the Softmaxes: ", predicted)
-        #print("Labels", test_labels)
-        num_right = (predicted == test_labels).sum().item()
-        #print("Got ", num_right, " correct")
-        total_acc += num_right
-        total += len(test_labels)
-        total_loss += loss.data.item()
-        percent_correct = float(total_acc)/float(total)
-        print("Validation Percent Correct: ", percent_correct)
-        print("Validation Average Loss: ", total_loss/total)
+            # calc training acc
+            _, predicted = torch.max(predictions, 1)
+            #print("Max of the Softmaxes: ", predicted)
+            #print("Labels", test_labels)
+            num_right = (predicted == test_labels).sum().item()
+            #print("Got ", num_right, " correct")
+            total_acc += num_right
+            total += len(test_labels)
+            total_loss += loss.data.item()
+            percent_correct = float(total_acc)/float(total)
+            print("Validation Percent Correct: ", percent_correct)
+            print("Validation Average Loss: ", total_loss/total)
     param = {}
     param['lr'] = learning_rate
     param['batch size'] = batch_size
