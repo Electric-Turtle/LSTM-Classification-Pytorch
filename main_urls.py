@@ -8,7 +8,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from utils.DataLoading import GetURLcharset, URLCharDataset
+from utils.DataLoading import HTMLCharDataset, URLCharDataset
 import argparse
 import time
 use_plot = False
@@ -38,16 +38,17 @@ if __name__=='__main__':
     parser.add_argument("--batch_size", type=int, required=True, help="Batch Size")
     parser.add_argument("--hidden_dim", type=int, default=30, help="Hidden Dimension of the LSTM")
     parser.add_argument("--embedding_dim", type=int, default=80, help="Embedding Dimension of the URL Tokens")
-    parser.add_argument("--url_len", type=int, default=60, help="Clips all URLs to this length")
+    parser.add_argument("--input_len", type=int, default=60, help="Clips all URLs to this length")
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs to run")
     parser.add_argument("--learning_rate", type=float, default=0.005, help="Number of training epochs to run")
-    
+    parser.add_argument("--use_html", action="store_true",  help="If set, going to use HTML GET results to classify")
     args = parser.parse_args()
+    html = args.use_html
     batch_size = args.batch_size
     use_gpu = args.use_gpu
     embedding_dim = args.embedding_dim
     hidden_dim = args.hidden_dim
-    url_len = args.url_len
+    input_len = args.input_len
     epochs = args.epochs
     learning_rate=args.learning_rate
     nlabel = 2
@@ -56,8 +57,12 @@ if __name__=='__main__':
     int2char = dict(enumerate(chars))
     char2int = {ch: ii for ii, ch in int2char.items()}
     ### data processing
-    dtrain_set = URLCharDataset(int2char, char2int, url_len, TRAIN_URLS, TRAIN_LABELS)
-    dtest_set = URLCharDataset(int2char, char2int, url_len, TEST_URLS, TEST_LABELS)
+    if html:    
+        dtrain_set = HTMLCharDataset(int2char, char2int, input_len, 'html_trainset.pkl')
+        dtest_set = HTMLCharDataset(int2char, char2int, input_len, 'html_valset.pkl')
+    else:
+        dtrain_set = URLCharDataset(int2char, char2int, input_len, TRAIN_URLS, TRAIN_LABELS)
+        dtest_set = URLCharDataset(int2char, char2int, input_len, TEST_URLS, TEST_LABELS)
     ### create model
     model = LSTMC.LSTMClassifier(embedding_dim=embedding_dim,hidden_dim=hidden_dim,
                            vocab_size=dtrain_set.vocab_size,label_size=nlabel, batch_size=batch_size, use_gpu=use_gpu)
@@ -78,7 +83,7 @@ if __name__=='__main__':
                     )
 
     test_loader = DataLoader(dtest_set,
-                        batch_size= dtest_set.__len__()/10,
+                        batch_size= 10,
                         shuffle=True,
                         num_workers=4
                         )
@@ -133,7 +138,7 @@ if __name__=='__main__':
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        model.batch_size = dtest_set.__len__()/10
+        model.batch_size = 10
         for (i, testdata) in enumerate(test_loader):
             test_inputs, test_labels = testdata
 
@@ -169,7 +174,7 @@ if __name__=='__main__':
     param['batch size'] = batch_size
     param['embedding dim'] = embedding_dim
     param['hidden dim'] = hidden_dim
-    param['sentence len'] = url_len
+    param['sentence len'] = input_len
 
     result = {}
     result['train loss'] = train_loss_

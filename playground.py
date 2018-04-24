@@ -1,21 +1,22 @@
-from utils.DataLoading import GetURLcharset, URLCharDataset
+from utils.DataLoading import HTMLCharDataset, URLCharDataset
 import torch.utils.data as data
-
-charset = GetURLcharset('urls.txt')
-regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")
-print(charset)
-print(charset - regularset)    
+from torch.utils.data import DataLoader
+regularset = set("}} {{ '""~`[]|+-_*^=()1234567890qwertyuiop[]\\asdfghjkl;/.mnbvcxz!?><&*$%QWERTYUIOPASDFGHJKLZXCVBNM#@")  
 chars = tuple(regularset)
 int2char = dict(enumerate(chars))
 char2int = {ch: ii for ii, ch in int2char.items()}
-ds = URLCharDataset(int2char, char2int, 25, 'urls.txt', 'labels.txt')
-test=[1,2,3,4]
-test_string="asdfjkl;1234567"
-print(int2char)
-print(ds.ids2caption(test))
-print(ds.caption2ids(test_string))
-dl = data.DataLoader(ds,batch_size=4,shuffle=True, num_workers=2)
-for iter, sample_batched in enumerate(dl):
-    urls, labels = sample_batched
-    print(urls.size())
-    print(labels.size())
+### data processing
+dtrain_set = HTMLCharDataset(int2char, char2int, 50, 'html_trainset.pkl')
+dtest_set = HTMLCharDataset(int2char, char2int, 50, 'html_valset.pkl')
+train_loader = DataLoader(dtrain_set,
+                batch_size=64,
+                shuffle=True,
+                num_workers=4
+                )
+train_load = enumerate(train_loader)
+test_loader = DataLoader(dtest_set,
+                    batch_size= int(dtest_set.__len__()/10),
+                    shuffle=True,
+                    num_workers=4
+                    )
+test_load = enumerate(test_loader)
