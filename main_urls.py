@@ -78,7 +78,7 @@ if __name__=='__main__':
                     )
 
     test_loader = DataLoader(dtest_set,
-                        batch_size=10,
+                        batch_size= dtest_set.__len__()/10,
                         shuffle=True,
                         num_workers=4
                         )
