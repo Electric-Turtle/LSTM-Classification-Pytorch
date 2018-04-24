@@ -78,7 +78,7 @@ if __name__=='__main__':
                     )
 
     test_loader = DataLoader(dtest_set,
-                        batch_size= dtest_set.__len__()/10,
+                        batch_size= 10,
                         shuffle=True,
                         num_workers=4
                         )
@@ -102,11 +102,13 @@ if __name__=='__main__':
             else: train_inputs = Variable(train_inputs)
 
             model.hidden = model.init_hidden()
+            output = model(train_inputs.t())
+            '''
             try:
                 output = model(train_inputs.t())
             except:
                 print("Output failed to compute for some reason.")
-                continue
+                continue'''
            # print("Raw Outputs", output)
           #  print("Labels", train_labels)
 
@@ -133,20 +135,22 @@ if __name__=='__main__':
         total_acc = 0.0
         total_loss = 0.0
         total = 0.0
-        model.batch_size = dtest_set.__len__()/10
+        model.batch_size = 10
         for (i, testdata) in enumerate(test_loader):
-            test_inputs, test_labels = testdata
 
+            test_inputs, test_labels = testdata
             if use_gpu:
                 test_inputs, test_labels = Variable(test_inputs.cuda()), test_labels.cuda()
             else: test_inputs = Variable(test_inputs)
 
             model.hidden = model.init_hidden()
+            output = model(test_inputs.t())
+            '''
             try:
                 output = model(test_inputs.t())
             except:
                 print("Output failed to compute for some reason... Skipping that input")
-                continue
+                continue'''
             #print("Raw Outputs", output)
             loss = loss_function(output, Variable(test_labels))
             predictions = F.softmax(output,dim=1)
