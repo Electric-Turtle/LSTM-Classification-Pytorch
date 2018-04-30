@@ -6,11 +6,11 @@ from torch.autograd import Variable
 
 class LSTMClassifier(nn.Module):
 
-    def __init__(self, embedding_dim, hidden_dim, vocab_size, label_size, batch_size, use_gpu):
+    def __init__(self, embedding_dim, hidden_dim, vocab_size, label_size, batch_size, gpu):
         super(LSTMClassifier, self).__init__()
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
-        self.use_gpu = use_gpu
+        self.gpu = gpu
 
         self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
         self.lstm = nn.LSTM(embedding_dim, hidden_dim)
@@ -18,9 +18,9 @@ class LSTMClassifier(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        if self.use_gpu:
-            h0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim).cuda())
-            c0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim).cuda())
+        if self.gpu>=0:
+            h0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim).cuda(self.gpu))
+            c0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim).cuda(self.gpu))
         else:
             h0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim))
             c0 = Variable(torch.zeros(1, self.batch_size, self.hidden_dim))
